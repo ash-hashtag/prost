@@ -235,8 +235,6 @@ impl Default for BytesType {
     }
 }
 
-
-
 /// The strings collection type to output for Protobuf `string` fields.
 #[non_exhaustive]
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -411,8 +409,7 @@ impl Config {
         self
     }
 
-
-    /// Similar to config.bytes(&[]) but for string type, This will make strings to use bytestring::ByteString 
+    /// Similar to config.bytes(&[]) but for string type, This will make strings to use bytestring::ByteString
     pub fn bytestring<I, S>(&mut self, paths: I) -> &mut Self
     where
         I: IntoIterator<Item = S>,
@@ -1333,6 +1330,7 @@ impl default::Default for Config {
             service_generator: None,
             map_type: PathMap::default(),
             bytes_type: PathMap::default(),
+            string_type: PathMap::default(),
             type_attributes: PathMap::default(),
             message_attributes: PathMap::default(),
             enum_attributes: PathMap::default(),
