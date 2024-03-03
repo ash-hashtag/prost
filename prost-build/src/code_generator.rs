@@ -18,7 +18,7 @@ use crate::ast::{Comments, Method, Service};
 use crate::extern_paths::ExternPaths;
 use crate::ident::{to_snake, to_upper_camel};
 use crate::message_graph::MessageGraph;
-use crate::{BytesType, Config, MapType};
+use crate::{BytesType, Config, MapType, StringType};
 
 #[derive(PartialEq)]
 enum Syntax {
@@ -408,6 +408,15 @@ impl<'a> CodeGenerator<'a> {
                 .unwrap_or_default();
             self.buf
                 .push_str(&format!("={:?}", bytes_type.annotation()));
+        } else if type_ == Type::String {
+            let string_type = self
+                .config
+                .string_type
+                .get_first_field(fq_message_name, field.name())
+                .copied()
+                .unwrap_or_default();
+            self.buf
+                .push_str(&format!("={:?}", string_type.annotation()));
         }
 
         match field.label() {
@@ -934,7 +943,14 @@ impl<'a> CodeGenerator<'a> {
             Type::Int32 | Type::Sfixed32 | Type::Sint32 | Type::Enum => String::from("i32"),
             Type::Int64 | Type::Sfixed64 | Type::Sint64 => String::from("i64"),
             Type::Bool => String::from("bool"),
-            Type::String => format!("{}::alloc::string::String", prost_path),
+            Type::String => self
+                .config
+                .string_type
+                .get_first_field(fq_message_name, field.name())
+                .copied()
+                .unwrap_or_default()
+                .rust_type()
+                .to_owned(),
             Type::Bytes => self
                 .config
                 .bytes_type
@@ -1268,6 +1284,23 @@ impl MapType {
         match self {
             MapType::HashMap => "::std::collections::HashMap",
             MapType::BTreeMap => "::prost::alloc::collections::BTreeMap",
+        }
+    }
+}
+
+
+impl StringType {
+    fn annotation(&self) -> &'static str {
+        match self {
+            Self::String => "string",
+            Self::ByteString => "bytestring",
+        }
+    }
+
+    fn rust_type(&self) -> &'static str {
+        match self {
+            Self::String => "::prost::alloc::string::String",
+            Self::ByteString => "::prost::bytestring::ByteString",
         }
     }
 }

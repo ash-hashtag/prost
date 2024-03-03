@@ -235,6 +235,24 @@ impl Default for BytesType {
     }
 }
 
+
+
+/// The strings collection type to output for Protobuf `string` fields.
+#[non_exhaustive]
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum StringType {
+    /// The [`alloc::alloc::String`] type
+    String,
+    /// The [`bytestring::ByteString`] type
+    ByteString,
+}
+
+impl Default for StringType {
+    fn default() -> Self {
+        StringType::String
+    }
+}
+
 /// Configuration options for Protobuf code generation.
 ///
 /// This configuration builder can be used to set non-default code generation options.
@@ -243,6 +261,7 @@ pub struct Config {
     service_generator: Option<Box<dyn ServiceGenerator>>,
     map_type: PathMap<MapType>,
     bytes_type: PathMap<BytesType>,
+    string_type: PathMap<StringType>,
     type_attributes: PathMap<String>,
     message_attributes: PathMap<String>,
     enum_attributes: PathMap<String>,
@@ -388,6 +407,21 @@ impl Config {
         for matcher in paths {
             self.bytes_type
                 .insert(matcher.as_ref().to_string(), BytesType::Bytes);
+        }
+        self
+    }
+
+
+    /// Similar to config.bytes(&[]) but for string type, This will make strings to use bytestring::ByteString 
+    pub fn bytestring<I, S>(&mut self, paths: I) -> &mut Self
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<str>,
+    {
+        self.string_type.clear();
+        for matcher in paths {
+            self.string_type
+                .insert(matcher.as_ref().to_string(), StringType::ByteString);
         }
         self
     }

@@ -284,6 +284,50 @@ impl Message for f64 {
     }
 }
 
+// 'google.protobuf.StringValue' but with ByteString
+impl Message for bytestring::ByteString {
+    fn encode_raw<B>(&self, buf: &mut B)
+    where
+        B: BufMut,
+        Self: Sized,
+    {
+        if !self.is_empty() {
+            string::encode(1, self, buf)
+        }
+    }
+
+    fn merge_field<B>(
+        &mut self,
+        tag: u32,
+        wire_type: WireType,
+        buf: &mut B,
+        ctx: DecodeContext,
+    ) -> Result<(), DecodeError>
+    where
+        B: Buf,
+        Self: Sized,
+    {
+        if tag == 1 {
+            string::merge(wire_type, self, buf, ctx)
+        } else {
+            skip_field(wire_type, tag, buf, ctx)
+        }
+    }
+
+    fn encoded_len(&self) -> usize {
+        if !self.is_empty() {
+            string::encoded_len(1, self)
+        } else {
+            0
+        }
+    }
+
+    fn clear(&mut self) {
+        *self = Self::new()
+    }
+}
+
+
 /// `google.protobuf.StringValue`
 impl Message for String {
     fn encode_raw<B>(&self, buf: &mut B)

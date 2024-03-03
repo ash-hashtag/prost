@@ -321,6 +321,16 @@ impl Field {
         };
         match &self.value_ty {
             ValueTy::Scalar(ty) => {
+                if let scalar::Ty::String(_) = *ty {
+                    return quote! {
+                        struct #wrapper_name<'a>(&'a dyn ::core::fmt::Debug);
+                        impl<'a> ::core::fmt::Debug for #wrapper_name<'a> {
+                            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+                                self.0.fmt(f)
+                            }
+                        }
+                    };
+                }
                 if let scalar::Ty::Bytes(_) = *ty {
                     return quote! {
                         struct #wrapper_name<'a>(&'a dyn ::core::fmt::Debug);
@@ -367,7 +377,7 @@ fn key_ty_from_str(s: &str) -> Result<scalar::Ty, Error> {
         | scalar::Ty::Sfixed32
         | scalar::Ty::Sfixed64
         | scalar::Ty::Bool
-        | scalar::Ty::String => Ok(ty),
+        | scalar::Ty::String(..) => Ok(ty),
         _ => bail!("invalid map key type: {}", s),
     }
 }
