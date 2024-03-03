@@ -814,7 +814,11 @@ impl sealed::StringsAdapter for bytestring::ByteString {
 
 impl sealed::StringsAdapter for String {
     fn replace_with_str_checked_bytes(&mut self, b: Bytes) {
-        *self = unsafe { String::from_utf8_unchecked(b.to_vec()) };
+        unsafe {
+            let v = self.as_mut_vec();
+            v.clear();
+            v.put(b);
+        }
     }
     fn len(&self) -> usize {
         String::len(self)
