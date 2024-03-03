@@ -861,7 +861,7 @@ pub mod string {
         }
         let len = len as usize;
         let bytes = buf.copy_to_bytes(len);
-        match std::str::from_utf8(&bytes) {
+        match str::from_utf8(&bytes) {
             Ok(_) => {
                 value.replace_with_str_checked_bytes(bytes);
                 Ok(())
